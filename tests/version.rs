@@ -12,8 +12,7 @@ fn read(path: &str) -> Option<String> {
 fn skill_and_manifests_match_the_crate_version() {
     let cargo = env!("CARGO_PKG_VERSION");
 
-    let skill =
-        read("plugin/skills/iced-impeccable/SKILL.md").expect("the skill ships with the crate");
+    let skill = read("plugin/skills/iced-design/SKILL.md").expect("the skill ships with the crate");
     let version = skill
         .lines()
         .skip(1)
@@ -43,9 +42,9 @@ fn skill_and_manifests_match_the_crate_version() {
             .and_then(|plugins| {
                 plugins
                     .iter()
-                    .find(|p| p["name"].as_str() == Some("iced-impeccable"))
+                    .find(|p| p["name"].as_str() == Some("iced-design"))
             })
-            .expect("marketplace.json lists iced-impeccable");
+            .expect("marketplace.json lists iced-design");
         assert_eq!(
             plugin["version"].as_str(),
             Some(cargo),

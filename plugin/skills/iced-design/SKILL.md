@@ -1,5 +1,5 @@
 ---
-name: iced-impeccable
+name: iced-design
 description: Use only when the project is an iced (Rust) desktop app and the task is designing, redesigning, critiquing, auditing, polishing or otherwise improving its UI, or visually verifying it headless (start it offscreen, inject keyboard and mouse input, take screenshots). Load it alongside the impeccable skill: impeccable owns the turn (commands, doctrine, modes); this skill layers iced-native guidance and headless verification on top. Not for web, iOS or Android UI.
 version: 0.3.1
 user-invocable: true

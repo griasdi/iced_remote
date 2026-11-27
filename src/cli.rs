@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 
 use crate::image;
 #[cfg(feature = "cli")]
-use crate::install::{self, AGENTS, Agent, Install, Outcome};
+use crate::install::{self, AGENTS, Agent, Install, Legacy, Outcome};
 use crate::protocol;
 
 const SHEET_MAX_WIDTH: u32 = 2560;
@@ -256,6 +256,29 @@ pub fn install(args: &[String]) -> i32 {
                 return 1;
             }
         }
+        match install::remove_legacy(&root.join(agent.skills_dir)) {
+            Ok(found) => {
+                for (old, legacy) in found {
+                    let old_rel = format!("{}/{old}", agent.skills_dir);
+                    match legacy {
+                        Legacy::Removed => {
+                            changed = true;
+                            say!(
+                                "ok {name} {old_rel} removed (renamed to {})",
+                                install::SKILL_NAME
+                            );
+                        }
+                        Legacy::Symlink => say!(
+                            "ok {name} {old_rel} skipped: symlink of the old skill name, remove it by hand"
+                        ),
+                    }
+                }
+            }
+            Err(e) => {
+                say!("err {name} {}/{e}", agent.skills_dir);
+                return 1;
+            }
+        }
     }
     if changed {
         say!("restart the agent session to load the skill");
@@ -267,7 +290,7 @@ pub fn install(args: &[String]) -> i32 {
 /// Asks (unless `yes`) and removes every install, then checks the agents
 /// no longer list the plugin. Errors are printed.
 fn remove_plugin(installs: &[Install], root: &Path, yes: bool) -> Result<(), ()> {
-    say!("the iced-impeccable plugin is installed and would load next to the repo copy:");
+    say!("a plugin install of the skill would load next to the repo copy:");
     for install in installs {
         say!("  {} {}", install.agent.name, install.via);
     }
@@ -323,10 +346,7 @@ fn remove_plugin(installs: &[Install], root: &Path, yes: bool) -> Result<(), ()>
 /// nothing.
 fn select_agents(root: &Path, ticked: &mut [bool]) -> Option<Vec<&'static Agent>> {
     loop {
-        say!(
-            "install the iced-impeccable skill into {} for:",
-            root.display()
-        );
+        say!("install the iced-design skill into {} for:", root.display());
         for (i, (agent, on)) in AGENTS.iter().zip(ticked.iter()).enumerate() {
             say!(
                 "  [{}] {} {:<8}{}/{}",

@@ -10,16 +10,21 @@ use std::process::{Command, Stdio};
 
 use serde_json::Value;
 
-pub(crate) const PLUGIN_ID: &str = "iced-impeccable@iced-impeccable";
-/// The `name` of `plugin/package.json`, as omp lists a linked plugin.
-pub(crate) const PACKAGE_NAME: &str = "iced-impeccable";
-pub(crate) const SKILL_NAME: &str = "iced-impeccable";
+pub(crate) const SKILL_NAME: &str = "iced-design";
+/// Marketplace ids of the plugin: the current one first, then earlier names
+/// an older install may still use.
+pub(crate) const PLUGIN_IDS: [&str; 2] =
+    ["iced-design@iced-remote", "iced-impeccable@iced-impeccable"];
+/// `name` of `plugin/package.json` as omp lists a linked plugin: current, then earlier.
+pub(crate) const PACKAGE_NAMES: [&str; 2] = ["iced-design", "iced-impeccable"];
+/// Skill directory names of earlier releases, removed next to a fresh install.
+pub(crate) const LEGACY_SKILL_NAMES: [&str; 1] = ["iced-impeccable"];
 
 macro_rules! skill_file {
     ($path:literal) => {
         (
             $path,
-            include_str!(concat!("../plugin/skills/iced-impeccable/", $path)),
+            include_str!(concat!("../plugin/skills/iced-design/", $path)),
         )
     };
 }
@@ -74,18 +79,23 @@ pub(crate) fn repo_root(start: &Path) -> Result<PathBuf, String> {
         .ok_or_else(|| format!("{} is not inside a git repository", start.display()))
 }
 
-/// The `version:` value of a skill's frontmatter (the block between the
-/// first line `---` and the next one); `None` without frontmatter or value.
-pub(crate) fn skill_version(skill_md: &str) -> Option<&str> {
+/// The `key:` value of a skill's frontmatter (the block between the first
+/// line `---` and the next one); `None` without frontmatter or value.
+pub(crate) fn frontmatter<'a>(skill_md: &'a str, key: &str) -> Option<&'a str> {
     let mut lines = skill_md.lines();
     if lines.next()? != "---" {
         return None;
     }
     lines
         .take_while(|line| *line != "---")
-        .find_map(|line| line.strip_prefix("version:"))
+        .find_map(|line| line.strip_prefix(key)?.strip_prefix(':'))
         .map(|value| value.trim().trim_matches(|c| c == '"' || c == '\''))
         .filter(|value| !value.is_empty())
+}
+
+/// The `version:` value of a skill's frontmatter.
+pub(crate) fn skill_version(skill_md: &str) -> Option<&str> {
+    frontmatter(skill_md, "version")
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -101,7 +111,7 @@ fn staging(dir: &Path, tag: &str) -> PathBuf {
     dir.with_file_name(format!(".{SKILL_NAME}.{tag}-{}", std::process::id()))
 }
 
-/// Writes the skill into `dir` (`<root>/<skills_dir>/iced-impeccable`),
+/// Writes the skill into `dir` (`<root>/<skills_dir>/iced-design`),
 /// replacing a stale copy; a symlinked `dir` stays untouched. The new copy
 /// is built next to `dir` and swapped in, so a failure leaves the old one.
 pub(crate) fn write_skill(dir: &Path) -> io::Result<Outcome> {
@@ -192,20 +202,54 @@ fn collect_files(dir: &Path, prefix: &str, out: &mut BTreeMap<String, PathBuf>) 
     Ok(())
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) enum Legacy {
+    Removed,
+    Symlink,
+}
+
+/// Old-name copies of the skill in `skills_dir`: a directory whose
+/// `SKILL.md` frontmatter `name:` is that old name is removed; a symlink is
+/// reported and left; anything else (missing, another skill) is skipped.
+/// An error names the old directory.
+pub(crate) fn remove_legacy(skills_dir: &Path) -> io::Result<Vec<(&'static str, Legacy)>> {
+    let named = |old: &str, e: io::Error| io::Error::new(e.kind(), format!("{old}: {e}"));
+    let mut found = Vec::new();
+    for old in LEGACY_SKILL_NAMES {
+        let dir = skills_dir.join(old);
+        match fs::symlink_metadata(&dir) {
+            Err(e) if e.kind() == io::ErrorKind::NotFound => {}
+            Err(e) => return Err(named(old, e)),
+            Ok(meta) if meta.file_type().is_symlink() => found.push((old, Legacy::Symlink)),
+            Ok(meta) if meta.is_dir() => {
+                let ours = fs::read_to_string(dir.join("SKILL.md"))
+                    .is_ok_and(|md| frontmatter(&md, "name") == Some(old));
+                if ours {
+                    fs::remove_dir_all(&dir).map_err(|e| named(old, e))?;
+                    found.push((old, Legacy::Removed));
+                }
+            }
+            Ok(_) => {}
+        }
+    }
+    Ok(found)
+}
+
 /// How the plugin is installed.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) enum Via {
-    /// A marketplace install in this scope (`user`, `project`, `local`).
-    Marketplace(String),
-    /// omp only: the package from `omp plugin link` (user-wide).
-    Package,
+    /// A marketplace install of plugin `id` in `scope` (`user`, `project`,
+    /// `local`).
+    Marketplace { id: &'static str, scope: String },
+    /// omp only: the package `omp plugin link` added (user-wide), by name.
+    Package(&'static str),
 }
 
 impl std::fmt::Display for Via {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Via::Marketplace(scope) => f.write_str(scope),
-            Via::Package => f.write_str("linked package"),
+            Via::Marketplace { id, scope } => write!(f, "{scope} {id}"),
+            Via::Package(name) => write!(f, "linked package {name}"),
         }
     }
 }
@@ -227,29 +271,33 @@ pub(crate) fn parse_installs(agent: &Agent, json: &str, root: &Path) -> Result<V
             .is_some_and(|p| fs::canonicalize(p).is_ok_and(|p| p == root))
     };
     let mut found: Vec<Via> = Vec::new();
-    let mut add = |scope: &str| {
+    let mut add = |id: &'static str, scope: &str| {
         if !found
             .iter()
-            .any(|v| matches!(v, Via::Marketplace(s) if s == scope))
+            .any(|v| matches!(v, Via::Marketplace { id: i, scope: s } if *i == id && s == scope))
         {
-            found.push(Via::Marketplace(scope.to_owned()));
+            found.push(Via::Marketplace {
+                id,
+                scope: scope.to_owned(),
+            });
         }
     };
-    let ours = |item: &Value| item.get("id").and_then(Value::as_str) == Some(PLUGIN_ID);
+    let ours = |item: &Value| -> Option<&'static str> {
+        let id = item.get("id").and_then(Value::as_str)?;
+        PLUGIN_IDS.into_iter().find(|known| *known == id)
+    };
     match agent.name {
         "claude" => {
-            for item in value
-                .as_array()
-                .ok_or_else(unexpected)?
-                .iter()
-                .filter(|i| ours(i))
-            {
+            for item in value.as_array().ok_or_else(unexpected)? {
+                let Some(id) = ours(item) else {
+                    continue;
+                };
                 let scope = item
                     .get("scope")
                     .and_then(Value::as_str)
                     .ok_or_else(unexpected)?;
                 if scope == "user" || in_root(item.get("projectPath")) {
-                    add(scope);
+                    add(id, scope);
                 }
             }
         }
@@ -258,7 +306,10 @@ pub(crate) fn parse_installs(agent: &Agent, json: &str, root: &Path) -> Result<V
                 .get("marketplace")
                 .and_then(Value::as_array)
                 .ok_or_else(unexpected)?;
-            for item in items.iter().filter(|i| ours(i)) {
+            for item in items {
+                let Some(id) = ours(item) else {
+                    continue;
+                };
                 let item_scope = item.get("scope").and_then(Value::as_str);
                 let entries = item
                     .get("entries")
@@ -272,7 +323,7 @@ pub(crate) fn parse_installs(agent: &Agent, json: &str, root: &Path) -> Result<V
                         .ok_or_else(unexpected)?;
                     let path = entry.get("projectPath");
                     if scope == "user" || path.is_none() || in_root(path) {
-                        add(scope);
+                        add(id, scope);
                     }
                 }
             }
@@ -281,11 +332,13 @@ pub(crate) fn parse_installs(agent: &Agent, json: &str, root: &Path) -> Result<V
                 .get("npm")
                 .and_then(Value::as_array)
                 .ok_or_else(unexpected)?;
-            if packages.iter().any(|item| {
-                item.get("name").and_then(Value::as_str) == Some(PACKAGE_NAME)
-                    && item.get("enabled").and_then(Value::as_bool) != Some(false)
-            }) {
-                found.push(Via::Package);
+            for name in PACKAGE_NAMES {
+                if packages.iter().any(|item| {
+                    item.get("name").and_then(Value::as_str) == Some(name)
+                        && item.get("enabled").and_then(Value::as_bool) != Some(false)
+                }) {
+                    found.push(Via::Package(name));
+                }
             }
         }
         _ => return Err(unexpected()),
@@ -321,12 +374,12 @@ pub(crate) fn list_installs(agent: &Agent, root: &Path) -> Result<Option<Vec<Via
 pub(crate) fn uninstall_args(install: &Install) -> Vec<String> {
     let mut args = vec!["plugin".to_owned(), "uninstall".to_owned()];
     match (&install.via, install.agent.name) {
-        (Via::Package, _) => args.push(PACKAGE_NAME.to_owned()),
-        (Via::Marketplace(scope), "omp") => {
-            args.extend([PLUGIN_ID.to_owned(), format!("--scope={scope}")]);
+        (Via::Package(name), _) => args.push((*name).to_owned()),
+        (Via::Marketplace { id, scope }, "omp") => {
+            args.extend([(*id).to_owned(), format!("--scope={scope}")]);
         }
-        (Via::Marketplace(scope), _) => {
-            args.extend([PLUGIN_ID.to_owned(), "--scope".to_owned(), scope.clone()]);
+        (Via::Marketplace { id, scope }, _) => {
+            args.extend([(*id).to_owned(), "--scope".to_owned(), scope.clone()]);
         }
     }
     args
@@ -378,7 +431,7 @@ mod tests {
         collect_files(
             Path::new(concat!(
                 env!("CARGO_MANIFEST_DIR"),
-                "/plugin/skills/iced-impeccable"
+                "/plugin/skills/iced-design"
             )),
             "",
             &mut on_disk,
@@ -407,6 +460,44 @@ mod tests {
         assert_eq!(skill_version("---\nversion:\n---\n"), None);
         assert_eq!(skill_version("name: x\nversion: 1.2.3\n"), None);
         assert_eq!(skill_version(""), None);
+        assert_eq!(frontmatter("---\nname: x\n---\n", "name"), Some("x"));
+        assert_eq!(frontmatter("---\nnames: x\n---\n", "name"), None);
+    }
+
+    #[test]
+    fn remove_legacy_removes_only_the_old_skill() {
+        let base = temp_dir("legacy");
+        assert_eq!(remove_legacy(&base).unwrap(), []);
+
+        let old = base.join("iced-impeccable");
+        fs::create_dir_all(old.join("reference")).unwrap();
+        fs::write(old.join("SKILL.md"), "---\nname: iced-impeccable\n---\n").unwrap();
+        assert_eq!(
+            remove_legacy(&base).unwrap(),
+            [("iced-impeccable", Legacy::Removed)]
+        );
+        assert!(!old.exists());
+
+        fs::create_dir_all(&old).unwrap();
+        fs::write(old.join("SKILL.md"), "---\nname: something-else\n---\n").unwrap();
+        assert_eq!(remove_legacy(&base).unwrap(), []);
+        assert!(old.join("SKILL.md").exists());
+        fs::remove_dir_all(&old).unwrap();
+
+        #[cfg(unix)]
+        {
+            let target = base.join("checkout");
+            fs::create_dir_all(&target).unwrap();
+            fs::write(target.join("SKILL.md"), "---\nname: iced-impeccable\n---\n").unwrap();
+            std::os::unix::fs::symlink(&target, &old).unwrap();
+            assert_eq!(
+                remove_legacy(&base).unwrap(),
+                [("iced-impeccable", Legacy::Symlink)]
+            );
+            assert!(fs::symlink_metadata(&old).unwrap().file_type().is_symlink());
+            assert!(target.join("SKILL.md").exists());
+        }
+        fs::remove_dir_all(&base).unwrap();
     }
 
     #[test]
@@ -442,7 +533,7 @@ mod tests {
         let leftovers: Vec<_> = fs::read_dir(&base)
             .unwrap()
             .map(|e| e.unwrap().file_name())
-            .filter(|name| name.to_string_lossy().starts_with(".iced-impeccable."))
+            .filter(|name| name.to_string_lossy().starts_with(".iced-design."))
             .collect();
         assert!(leftovers.is_empty(), "{leftovers:?}");
 
@@ -465,47 +556,58 @@ mod tests {
         let base = temp_dir("parse");
         let root = fs::canonicalize(&base).unwrap();
         let other = temp_dir("parse-other");
+        let [current, legacy] = PLUGIN_IDS;
+        let market = |id: &'static str, scope: &str| Via::Marketplace {
+            id,
+            scope: scope.to_owned(),
+        };
         let claude = serde_json::json!([
-            {"id": PLUGIN_ID, "scope": "local", "projectPath": other},
+            {"id": current, "scope": "local", "projectPath": other},
             {"id": "other@market", "scope": "user"},
-            {"id": PLUGIN_ID, "scope": "user"},
-            {"id": PLUGIN_ID, "scope": "project", "projectPath": root},
-            {"id": PLUGIN_ID, "scope": "user"},
+            {"id": current, "scope": "user"},
+            {"id": current, "scope": "project", "projectPath": root},
+            {"id": current, "scope": "user"},
+            {"id": "iced-impeccable@iced-impeccable", "scope": "user"},
         ])
         .to_string();
         assert_eq!(
             parse_installs(&AGENTS[0], &claude, &root).unwrap(),
             [
-                Via::Marketplace("user".into()),
-                Via::Marketplace("project".into())
+                market(current, "user"),
+                market(current, "project"),
+                market("iced-impeccable@iced-impeccable", "user"),
             ]
         );
 
         let omp = serde_json::json!({"npm": [
             {"name": "other", "enabled": true},
-            {"name": PACKAGE_NAME, "version": "0.3.1", "path": "/p", "enabled": true},
+            {"name": "iced-impeccable", "enabled": true},
+            {"name": "iced-design", "version": "0.4.0", "path": "/p", "enabled": true},
         ], "marketplace": [
-            {"id": PLUGIN_ID, "scope": "user", "entries": [
+            {"id": current, "scope": "user", "entries": [
                 {"scope": "user", "installPath": "/x"},
                 {"scope": "project", "installPath": "/y"},
                 {"scope": "project", "projectPath": other},
             ]},
+            {"id": legacy, "scope": "project", "entries": [{"scope": "project"}]},
             {"id": "other@market", "scope": "user", "entries": [{"scope": "user"}]},
         ]})
         .to_string();
         assert_eq!(
             parse_installs(&AGENTS[1], &omp, &root).unwrap(),
             [
-                Via::Marketplace("user".into()),
-                Via::Marketplace("project".into()),
-                Via::Package
+                market(current, "user"),
+                market(current, "project"),
+                market(legacy, "project"),
+                Via::Package("iced-design"),
+                Via::Package("iced-impeccable"),
             ]
         );
         assert_eq!(
             parse_installs(&AGENTS[1], r#"{"npm": [], "marketplace": []}"#, &root).unwrap(),
             []
         );
-        let disabled = serde_json::json!({"npm": [{"name": PACKAGE_NAME, "enabled": false}], "marketplace": []})
+        let disabled = serde_json::json!({"npm": [{"name": "iced-design", "enabled": false}], "marketplace": []})
             .to_string();
         assert_eq!(parse_installs(&AGENTS[1], &disabled, &root).unwrap(), []);
         assert!(parse_installs(&AGENTS[1], r#"{"marketplace": []}"#, &root).is_err());
@@ -525,16 +627,39 @@ mod tests {
             })
         };
         assert_eq!(
-            args(1, Via::Package),
-            ["plugin", "uninstall", "iced-impeccable"]
+            args(1, Via::Package("iced-design")),
+            ["plugin", "uninstall", "iced-design"]
         );
         assert_eq!(
-            args(1, Via::Marketplace("user".into())),
-            ["plugin", "uninstall", PLUGIN_ID, "--scope=user"]
+            args(
+                1,
+                Via::Marketplace {
+                    id: "iced-design@iced-remote",
+                    scope: "user".into()
+                }
+            ),
+            [
+                "plugin",
+                "uninstall",
+                "iced-design@iced-remote",
+                "--scope=user"
+            ]
         );
         assert_eq!(
-            args(0, Via::Marketplace("project".into())),
-            ["plugin", "uninstall", PLUGIN_ID, "--scope", "project"]
+            args(
+                0,
+                Via::Marketplace {
+                    id: "iced-impeccable@iced-impeccable",
+                    scope: "project".into()
+                }
+            ),
+            [
+                "plugin",
+                "uninstall",
+                "iced-impeccable@iced-impeccable",
+                "--scope",
+                "project"
+            ]
         );
     }
 }

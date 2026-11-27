@@ -150,13 +150,16 @@ sheet=$("$target/debug/iced-remote" sheet "$dir/sheet.png" "$dir/light.png" "$di
 # installed plugin of the developer) is touched.
 mkdir -p "$dir/repo/.git"
 skill_install() { PATH= "$target/debug/iced-remote" install --agent claude,omp "$@" 2>&1 || true; }
+mkdir -p "$dir/repo/.omp/skills/iced-impeccable" && printf -- '---\nname: iced-impeccable\nversion: 0.3.1\n---\n' >"$dir/repo/.omp/skills/iced-impeccable/SKILL.md"
 out=$(skill_install "$dir/repo")
-[[ $out == *'ok claude .claude/skills/iced-impeccable installed '* \
-    && $out == *'ok omp .omp/skills/iced-impeccable installed '* ]] && echo "ok    install" \
+[[ $out == *'ok claude .claude/skills/iced-design installed '* \
+    && $out == *'ok omp .omp/skills/iced-design installed '* \
+    && $out == *'ok omp .omp/skills/iced-impeccable removed (renamed to iced-design)'* \
+    && ! -e $dir/repo/.omp/skills/iced-impeccable ]] && echo "ok    install" \
     || { echo "FAIL  install: $out"; failures=$((failures + 1)); }
 out=$(skill_install "$dir/repo")
-[[ $out == *'ok claude .claude/skills/iced-impeccable up to date '* \
-    && $out == *'ok omp .omp/skills/iced-impeccable up to date '* ]] && echo "ok    install again" \
+[[ $out == *'ok claude .claude/skills/iced-design up to date '* \
+    && $out == *'ok omp .omp/skills/iced-design up to date '* ]] && echo "ok    install again" \
     || { echo "FAIL  install again: $out"; failures=$((failures + 1)); }
 if out=$(PATH= "$target/debug/iced-remote" install --agent claude "$dir" 2>&1); then
     echo "FAIL  install outside a repo succeeded: $out"; failures=$((failures + 1))
@@ -180,7 +183,7 @@ case "$1 $2" in
     elif [[ $cli == claude ]]; then
         echo '[{"id":"iced-impeccable@iced-impeccable","scope":"user"}]'
     else
-        echo '{"npm":[],"marketplace":[{"id":"iced-impeccable@iced-impeccable","scope":"project","entries":[{"scope":"project"}]}]}'
+        echo '{"npm":[],"marketplace":[{"id":"iced-design@iced-remote","scope":"project","entries":[{"scope":"project"}]}]}'
     fi
     ;;
 "plugin uninstall")
@@ -200,13 +203,13 @@ STUB
         && echo "ok    install without agents removes nothing" \
         || { echo "FAIL  install without agents: $out"; failures=$((failures + 1)); }
     out=$(stub_install --agent omp --yes "$dir/repo2"; echo "exit $code")
-    [[ $out == *'ok omp .omp/skills/iced-impeccable installed'* && $out == *'exit 0' \
-        && $(<"$dir/uninstalls") == 'omp plugin uninstall iced-impeccable@iced-impeccable --scope=project' ]] \
+    [[ $out == *'ok omp .omp/skills/iced-design installed'* && $out == *'exit 0' \
+        && $(<"$dir/uninstalls") == 'omp plugin uninstall iced-design@iced-remote --scope=project' ]] \
         && echo "ok    install removes the omp plugin only" \
         || { echo "FAIL  install --agent omp: $out"; failures=$((failures + 1)); }
     out=$(stub_install --agent claude --yes "$dir/repo2"; echo "exit $code")
-    [[ $out == *'ok claude .claude/skills/iced-impeccable installed'* && $out == *'exit 0' \
-        && $(<"$dir/uninstalls") == 'omp plugin uninstall iced-impeccable@iced-impeccable --scope=project
+    [[ $out == *'ok claude .claude/skills/iced-design installed'* && $out == *'exit 0' \
+        && $(<"$dir/uninstalls") == 'omp plugin uninstall iced-design@iced-remote --scope=project
 claude plugin uninstall iced-impeccable@iced-impeccable --scope user' ]] \
         && echo "ok    install removes the claude plugin for claude" \
         || { echo "FAIL  install --agent claude: $out"; failures=$((failures + 1)); }
