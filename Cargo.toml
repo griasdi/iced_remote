@@ -1,13 +1,13 @@
 [package]
 name = "iced_impeccable"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2024"
 rust-version = "1.91"
 authors = ["Hannes Uebelacker <1265813+tuco86@users.noreply.github.com>"]
 license = "MIT OR Apache-2.0"
-description = "Headless remote control for iced applications: offscreen rendering, input injection, widget inventory and screenshots over a local socket"
-repository = "https://github.com/griasdi/iced_impeccable"
-homepage = "https://github.com/griasdi/iced_impeccable"
+description = "Renamed to iced_remote: headless remote control for iced applications"
+repository = "https://github.com/griasdi/iced_remote"
+homepage = "https://github.com/griasdi/iced_remote"
 readme = "README.md"
 keywords = ["iced", "gui", "headless", "testing", "automation"]
 categories = ["gui", "development-tools::testing"]

@@ -1,5 +1,7 @@
 # iced_impeccable
 
+> **Renamed.** This crate continues as [`iced_remote`](https://crates.io/crates/iced_remote) from 0.4.0 on; `iced_impeccable` 0.3.2 is its last release. Migrate: `iced_remote = "0.4"` in `Cargo.toml`, `iced_remote::` in code, `cargo install iced_remote --bin iced-remote --locked` for the binary, `iced-remote install` for the skill (now `iced-design`).
+
 [![CI](https://github.com/griasdi/iced_impeccable/actions/workflows/ci.yml/badge.svg)](https://github.com/griasdi/iced_impeccable/actions/workflows/ci.yml)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
 [![crates.io](https://img.shields.io/crates/v/iced_impeccable.svg)](https://crates.io/crates/iced_impeccable)

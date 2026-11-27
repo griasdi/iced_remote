@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-11-27
+
+### Changed
+
+- Renamed to `iced_remote`; this is the last release of `iced_impeccable`.
+
 ## [0.3.1] - 2026-11-16
 
 ### Changed
@@ -183,6 +189,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   variants and DESIGN.md mapping.
 
 [Unreleased]: https://github.com/griasdi/iced_impeccable/compare/v0.3.1...HEAD
+[0.3.2]: https://github.com/griasdi/iced_remote/tree/iced_impeccable-0.3.2
 [0.3.1]: https://github.com/griasdi/iced_impeccable/releases/tag/v0.3.1
 [0.3.0]: https://github.com/griasdi/iced_impeccable/releases/tag/v0.3.0
 [0.2.0]: https://github.com/griasdi/iced_impeccable/releases/tag/v0.2.0
