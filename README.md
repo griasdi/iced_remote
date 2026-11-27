@@ -1,15 +1,17 @@
-# iced_impeccable
+# iced_remote
 
-[![CI](https://github.com/griasdi/iced_impeccable/actions/workflows/ci.yml/badge.svg)](https://github.com/griasdi/iced_impeccable/actions/workflows/ci.yml)
+[![CI](https://github.com/griasdi/iced_remote/actions/workflows/ci.yml/badge.svg)](https://github.com/griasdi/iced_remote/actions/workflows/ci.yml)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
-[![crates.io](https://img.shields.io/crates/v/iced_impeccable.svg)](https://crates.io/crates/iced_impeccable)
-[![docs.rs](https://img.shields.io/docsrs/iced_impeccable)](https://docs.rs/iced_impeccable)
+[![crates.io](https://img.shields.io/crates/v/iced_remote.svg)](https://crates.io/crates/iced_remote)
+[![docs.rs](https://img.shields.io/docsrs/iced_remote)](https://docs.rs/iced_remote)
 [![iced 0.14](https://img.shields.io/badge/iced-0.14-blue.svg)](https://iced.rs)
+
+Formerly `iced_impeccable` (up to 0.3.x).
 
 Headless remote control for [iced](https://iced.rs) 0.14 applications and
 daemons, built for coding agents that need to see and operate the UI they
-change, plus a companion skill that brings the
-[impeccable](https://impeccable.style) design workflow to iced desktop apps.
+change, plus the iced-design skill, which works alone or under the
+[impeccable](https://impeccable.style) design workflow.
 
 The app runs offscreen with its real renderer behind a local control socket
 (a named pipe on Windows). A client sends one command per connection: input,
@@ -17,7 +19,7 @@ widget lookups by id or text, waits, screenshots. The app's own tasks and
 subscriptions run unchanged; no window, display server or desktop input is
 involved.
 
-![The demo app, captured headless with screenshot --annotate: every widget the interface reports is outlined and numbered, matching the node lines of tree](https://raw.githubusercontent.com/griasdi/iced_impeccable/main/assets/demo-annotated.png)
+![The demo app, captured headless with screenshot --annotate: every widget the interface reports is outlined and numbered, matching the node lines of tree](https://raw.githubusercontent.com/griasdi/iced_remote/main/assets/demo-annotated.png)
 
 *The demo app captured with `screenshot --annotate`: the numbers match the
 node lines `tree` prints, so an agent clicks `tap #settings` or
@@ -26,10 +28,10 @@ node lines `tree` prints, so an agent clicks `tap #settings` or
 ## Install
 
 ```sh
-cargo install iced_impeccable --bin iced-impeccable --locked
+cargo install iced_remote --bin iced-remote --locked
 ```
 
-The `iced-impeccable` binary:
+The `iced-remote` binary:
 
 - `ctl`: the client, the same as `<app> ctl` ([Run](#run));
 - `sheet`: contact sheets from screenshots ([Contact sheets](#contact-sheets));
@@ -40,10 +42,10 @@ The `iced-impeccable` binary:
 
 ```toml
 [dependencies]
-iced_impeccable = { version = "0.2", optional = true }
+iced_remote = { version = "0.4", optional = true }
 
 [features]
-remote = ["dep:iced_impeccable"]
+remote = ["dep:iced_remote"]
 ```
 
 ```rust
@@ -52,7 +54,7 @@ fn main() -> iced::Result {
         .subscription(App::subscription);
 
     #[cfg(feature = "remote")]
-    return iced_impeccable::Remote::new(app)
+    return iced_remote::Remote::new(app)
         // periodic messages that mean "time passed", not activity
         .heartbeat(|m| matches!(m, Message::Tick(_) | Message::Frame(_)))
         // app-specific commands, e.g. `ctl <socket> reset`
@@ -65,8 +67,8 @@ fn main() -> iced::Result {
 ```
 
 - Icon-only interactive widgets get an id: `container(button(icon)).id("settings")`.
-- Code that parses argv uses `iced_impeccable::app_args()` (argv without the host flags).
-- Code that must not open OS dialogs checks `iced_impeccable::is_headless()`.
+- Code that parses argv uses `iced_remote::app_args()` (argv without the host flags).
+- Code that must not open OS dialogs checks `iced_remote::is_headless()`.
 - Desktop integration that must not run headless (tray icons) goes into
   `.windowed(|| ...)`, headless-only setup into `.headless(|| ...)`.
 - A daemon (`iced::daemon(...)`) is wrapped the same way: `Remote::new(daemon)`.
@@ -75,19 +77,19 @@ fn main() -> iced::Result {
 ### Features
 
 The library needs only the renderers the app already uses; `default-features
-= false` drops the `iced-impeccable` binary's code:
+= false` drops the `iced-remote` binary's code:
 
 - `wgpu`, `tiny-skia`: the renderers `--backend` can select. Name the ones the
   app's `iced` has too (iced unifies them; a backend that is not compiled in
   fails at startup). Without `--backend` the host uses `wgpu` when the
   feature is on, else `tiny-skia`.
 - `x11`, `wayland`: iced's windowing backends, which winit needs on Linux.
-- `cli`: `cli::install` and the `iced-impeccable` binary (adds `serde_json`).
+- `cli`: `cli::install` and the `iced-remote` binary (adds `serde_json`).
 
 All five are on by default. An app that wants only the host:
 
 ```toml
-iced_impeccable = { version = "0.2", optional = true, default-features = false, features = ["wgpu", "tiny-skia"] }
+iced_remote = { version = "0.4", optional = true, default-features = false, features = ["wgpu", "tiny-skia"] }
 ```
 
 `x11` and `wayland` then come from the app's own `iced`.
@@ -98,8 +100,8 @@ iced_impeccable = { version = "0.2", optional = true, default-features = false, 
 cargo build --features remote
 target/debug/myapp --headless --control /tmp/myapp-1.sock [--size 1280x800] [--scale 2] \
     [--appearance dark|light] [--backend wgpu|tiny-skia] 2>/tmp/myapp-1.log &
-target/debug/myapp ctl /tmp/myapp-1.sock info          # or: iced-impeccable ctl ...
-iced-impeccable ctl /tmp/myapp-1.sock - <<'EOF'         # batch: one command per line
+target/debug/myapp ctl /tmp/myapp-1.sock info          # or: iced-remote ctl ...
+iced-remote ctl /tmp/myapp-1.sock - <<'EOF'             # batch: one command per line
 tree
 tap #name
 type Ada
@@ -197,7 +199,7 @@ second (a valid capture of a continuously animating UI, a finding at rest);
 ## Contact sheets
 
 ```sh
-iced-impeccable sheet [--cols N] [--labels a,b,c] [--max-width PX] OUT.png IN.png...
+iced-remote sheet [--cols N] [--labels a,b,c] [--max-width PX] OUT.png IN.png...
 ```
 
 Lays screenshots out in a labelled grid; images wider than a cell are shrunk
@@ -205,24 +207,28 @@ to it until the sheet fits `--max-width` (default 2560).
 
 ## Skill
 
-The `iced-impeccable` skill (in `plugin/`) layers iced platform guidance and
-headless verification on top of the [impeccable](https://impeccable.style)
-skill, which must be installed as well.
+The `iced-design` skill (in `plugin/`) brings iced platform guidance and
+headless verification to coding agents. It works alone (`verify`, `audit`,
+`adapt`, `variants`, `integrate`); with the
+[impeccable](https://impeccable.style) skill installed it follows
+impeccable's commands via `reference/impeccable.md`.
 
 Recommended, per repository:
 
 ```sh
-iced-impeccable install [--agent claude,omp] [--yes] [DIR]
+iced-remote install [--agent claude,omp] [--yes] [DIR]
 ```
 
 - Finds the git repository containing `DIR` (default `.`).
-- Checks whether the marketplace plugin `iced-impeccable@iced-impeccable` is
-  installed for Claude Code or omp, or the omp package linked with
-  `omp plugin link`; it would load next to the repo copy, so `install` offers
-  to remove it (`--yes` removes without asking) and aborts otherwise.
+- Checks whether the marketplace plugin `iced-design@iced-remote` (or
+  `iced-impeccable@iced-impeccable` from before the rename) is installed for
+  Claude Code or omp, or the omp package linked with `omp plugin link`; it
+  would load next to the repo copy, so `install` offers to remove it
+  (`--yes` removes without asking) and aborts otherwise.
 - Asks for the agents, with the detected ones preselected; `--agent` skips
   the question and is required without a terminal.
-- Writes `.claude/skills/iced-impeccable/` and `.omp/skills/iced-impeccable/`.
+- Writes `.claude/skills/iced-design/` and `.omp/skills/iced-design/`, and
+  removes an `iced-impeccable` copy of the skill next to them.
 - Run again after upgrading the binary, it updates the copy; a symlinked
   skill directory is left alone.
 
@@ -233,21 +239,21 @@ Alternative, global through the marketplace. The two ways exclude each other.
 Claude Code:
 
 ```text
-/plugin marketplace add griasdi/iced_impeccable
-/plugin install iced-impeccable@iced-impeccable
+/plugin marketplace add griasdi/iced_remote
+/plugin install iced-design@iced-remote
 ```
 
 [omp](https://github.com/can1357/oh-my-pi), from a clone:
 
 ```sh
-omp plugin marketplace add /path/to/iced_impeccable
-omp plugin install iced-impeccable@iced-impeccable
+omp plugin marketplace add /path/to/iced_remote
+omp plugin install iced-design@iced-remote
 ```
 
 Or without a marketplace, from a clone:
 
 ```sh
-omp plugin link /path/to/iced_impeccable/plugin
+omp plugin link /path/to/iced_remote/plugin
 ```
 
 The link follows the clone's working tree and, like the marketplace, excludes

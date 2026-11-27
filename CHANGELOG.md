@@ -11,8 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The plugin can be linked into omp without a marketplace
   (`omp plugin link <clone>/plugin`).
-- `iced-impeccable install` detects that linked package and offers to remove
-  it (`omp plugin uninstall iced-impeccable`).
+- `iced-remote install` detects that linked package and offers to remove
+  it (`omp plugin uninstall iced-design`).
+
+### Changed
+
+- The crate is now `iced_remote` and the binary `iced-remote`. Migrate with
+  `iced_remote = "0.4"`, `iced_remote::` paths and
+  `cargo install iced_remote --bin iced-remote --locked`.
+- The repository is github.com/griasdi/iced_remote.
+- The skill is now `iced-design` and the plugin id `iced-design@iced-remote`:
+  impeccable's updater deleted every `*-impeccable` skill directory.
+- The skill works without impeccable (`verify`, `audit`, `adapt`,
+  `variants`, `integrate`). Everything specific to impeccable lives in
+  `reference/impeccable.md`. Captures go to `target/ui-review/`
+  (`.impeccable/review/` under impeccable). The variant switch is
+  `UI_VARIANT`.
+- `iced-remote install` removes an old `iced-impeccable` skill copy and
+  plugin installs under the old id.
 
 ## [0.3.1] - 2026-11-16
 

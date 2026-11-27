@@ -1,7 +1,7 @@
 # Releasing
 
-Checklist for a release of the `iced_impeccable` crate and the
-`iced-impeccable` skill plugin. Both carry the same version.
+Checklist for a release of the `iced_remote` crate and the
+`iced-design` skill plugin. Both carry the same version.
 
 ## 1. Pick the version
 
@@ -16,11 +16,11 @@ cargo semver-checks --baseline-rev "$(git tag --list 'v*' --sort=-v:refname | he
 
 ## 2. Bump the version
 
-- `Cargo.toml`: `version = "X.Y.Z"`, then `cargo update -p iced_impeccable`.
+- `Cargo.toml`: `version = "X.Y.Z"`, then `cargo update -p iced_remote`.
 - `plugin/.claude-plugin/plugin.json`: `"version"`.
 - `plugin/package.json`: `"version"`.
 - `.claude-plugin/marketplace.json`: the plugin entry's `"version"`.
-- `plugin/skills/iced-impeccable/SKILL.md`: frontmatter `version`.
+- `plugin/skills/iced-design/SKILL.md`: frontmatter `version`.
 
 `cargo test --test version` checks that the five agree.
 
@@ -28,10 +28,10 @@ cargo semver-checks --baseline-rev "$(git tag --list 'v*' --sort=-v:refname | he
 
 - Rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` and add a fresh empty
   `## [Unreleased]` above it.
-- Add `[X.Y.Z]: https://github.com/griasdi/iced_impeccable/releases/tag/vX.Y.Z`
+- Add `[X.Y.Z]: https://github.com/griasdi/iced_remote/releases/tag/vX.Y.Z`
   at the bottom.
 - Point the `[Unreleased]:` link at
-  `https://github.com/griasdi/iced_impeccable/compare/vX.Y.Z...HEAD`.
+  `https://github.com/griasdi/iced_remote/compare/vX.Y.Z...HEAD`.
 
 `scripts/release-notes.sh X.Y.Z` prints the release notes and fails as the
 release workflow would.
@@ -43,7 +43,7 @@ cargo fmt --check
 cargo clippy --all-targets -- -D warnings
 cargo test
 scripts/release-notes.sh X.Y.Z
-cargo build --example demo --bin iced-impeccable
+cargo build --example demo --bin iced-remote
 scripts/smoke.sh
 cargo check --target x86_64-pc-windows-gnu --all-targets
 cargo deny --log-level error check
@@ -79,15 +79,15 @@ gh run watch "$(gh run list --workflow release.yml --limit 1 --json databaseId -
 ## 7. Install locally
 
 ```sh
-cargo install --path . --bin iced-impeccable --locked
-omp plugin marketplace update iced-impeccable    # re-copies the skill files
-omp plugin install --force iced-impeccable@iced-impeccable
+cargo install --path . --bin iced-remote --locked
+omp plugin marketplace update iced-remote    # re-copies the skill files
+omp plugin install --force iced-design@iced-remote
 ```
 
 ## Trusted Publishing
 
-Already configured on crates.io, nothing to do: `iced_impeccable` → Settings →
+Already configured on crates.io, nothing to do: `iced_remote` → Settings →
 Trusted Publishing has a GitHub publisher for repository
-`griasdi/iced_impeccable`, workflow `release.yml`, environment `release`.
+`griasdi/iced_remote`, workflow `release.yml`, environment `release`.
 Renaming the workflow file or the environment breaks publishing until this
 entry is changed too.

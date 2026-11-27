@@ -1,7 +1,7 @@
 # Contributing
 
 Issues and pull requests are welcome at
-https://github.com/griasdi/iced_impeccable. Contributions are dual licensed as
+https://github.com/griasdi/iced_remote. Contributions are dual licensed as
 stated in the [License](README.md#license) section of the README.
 
 ## Setup

@@ -1,4 +1,4 @@
-# iced_impeccable
+# iced_remote
 
 Two things live here:
 
@@ -6,10 +6,11 @@ Two things live here:
    control socket (Unix socket, Windows named pipe): offscreen hardware
    rendering, injected keyboard and mouse input, a widget inventory with
    addressable targets, waits, screenshots with crop/zoom/annotation, and
-   video recording. Plus the `iced-impeccable` binary (`ctl` client, `sheet`
+   video recording. Plus the `iced-remote` binary (`ctl` client, `sheet`
    contact sheets, `help`) and a demo app.
-2. The `iced-impeccable` skill plugin (`plugin/`, `.claude-plugin/`), a
-   companion to the `impeccable` design skill for iced desktop apps.
+2. The `iced-design` skill plugin (`plugin/`, `.claude-plugin/`): iced desktop
+   design guidance and headless verification; works alone or under the
+   `impeccable` design skill (`reference/impeccable.md`).
 
 ## Module map
 
@@ -25,10 +26,10 @@ Two things live here:
 | `src/channel.rs` | transport (Unix socket / named pipe), multi-line replies |
 | `src/client.rs` | `ctl` client: connect retry, batch mode, path resolution |
 | `src/image.rs` | PNG I/O, crop, zoom, annotation, pointer sprite, contact sheet |
-| `src/cli.rs`, `src/bin/iced-impeccable.rs` | standalone binary |
+| `src/cli.rs`, `src/bin/iced-remote.rs` | standalone binary |
 | `examples/demo.rs` | demo app exercising every protocol path |
 | `examples/multiwin.rs` | daemon with two windows, for window selection |
-| `plugin/skills/iced-impeccable/` | `SKILL.md` and `reference/*.md` |
+| `plugin/skills/iced-design/` | `SKILL.md` and `reference/*.md` |
 | `scripts/smoke.sh` | end-to-end smoke: demo headless, every protocol path checked |
 | `scripts/release-notes.sh` | CHANGELOG section of a version (release notes, checked) |
 | `.github/workflows/ci.yml` | CI: Linux and Windows (clippy, test, smoke on tiny-skia), cargo-deny |
@@ -74,7 +75,7 @@ reply line of every command; extend it when a command or reply changes.
 User-visible changes go into `CHANGELOG.md` under `[Unreleased]`. The release
 checklist is `RELEASING.md`. A pushed `vX.Y.Z` tag publishes (`release.yml`).
 `CONTRIBUTING.md` is the guide for outside contributors. `origin` is
-github.com/griasdi/iced_impeccable.
+github.com/griasdi/iced_remote.
 
 ## Commits
 
