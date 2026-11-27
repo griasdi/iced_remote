@@ -1,7 +1,7 @@
 ---
 name: iced-design
 description: Use only when the project is an iced (Rust) desktop app and the task is designing, redesigning, critiquing, auditing, polishing or otherwise improving its UI, or visually verifying it headless (start it offscreen, inject keyboard and mouse input, take screenshots). Works alone or under another design skill such as impeccable: that skill keeps its doctrine and commands, this one supplies iced-native guidance and headless verification. Not for web, iOS or Android UI.
-version: 0.3.1
+version: 0.4.0
 user-invocable: true
 argument-hint: "verify | audit | adapt | variants [n] [element] | integrate | [design-skill command] [target]"
 license: MIT OR Apache-2.0

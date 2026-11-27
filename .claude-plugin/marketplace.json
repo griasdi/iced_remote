@@ -12,7 +12,7 @@
     {
       "name": "iced-design",
       "description": "iced (Rust) desktop UI design guidance and headless visual verification (offscreen start, injected input, screenshots); works alone or with the impeccable skill.",
-      "version": "0.3.1",
+      "version": "0.4.0",
       "author": {
         "name": "Hannes Uebelacker",
         "email": "1265813+tuco86@users.noreply.github.com"
