@@ -208,7 +208,8 @@ fn draw_text(frame: &mut Frame, x: i64, y: i64, text: &str, block: i64, color: [
 }
 
 /// Outlines each box (logical coordinates) in its colour and labels it with
-/// its index at the top-left corner.
+/// its index on the top-left corner, outside the box so the label covers no
+/// content; inside it when the box touches the top edge.
 pub(crate) fn annotate(frame: &mut Frame, boxes: &[(usize, Rectangle, [u8; 4])], scale: f32) {
     const LINE: i64 = 2;
     let block: i64 = if scale < 1.5 { 1 } else { 2 };
@@ -225,10 +226,11 @@ pub(crate) fn annotate(frame: &mut Frame, boxes: &[(usize, Rectangle, [u8; 4])],
     // Labels after all outlines, so no outline crosses a label.
     for &(index, rect, _) in boxes {
         let label = index.to_string();
-        let x = (rect.x * scale).round() as i64;
-        let y = (rect.y * scale).round() as i64;
         let w = (label.len() as i64 * 8 + 2) * block;
         let h = 10 * block;
+        let x = (rect.x * scale).round() as i64;
+        let top = (rect.y * scale).round() as i64;
+        let y = if top >= h { top - h } else { top };
         frame.fill_rect(x, y, w, h, [0, 0, 0, 255]);
         draw_text(
             frame,

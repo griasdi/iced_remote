@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `screenshot --annotate` puts each number above its box instead of over
+  the box's top-left corner, so labels no longer hide the first letters of
+  a widget; boxes at the top edge keep the label inside.
+
 ## [0.4.0] - 2026-11-27
 
 ### Added
