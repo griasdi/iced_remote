@@ -80,9 +80,9 @@ Lines starting with `#` and blank lines are skipped, so a batch can be commented
 - Small details: `screenshot --crop X Y W H --zoom 3 PATH` (crop in UI-logical coordinates, zoom 1-8). Never `magick`, `convert` or other external image tools.
 - Appearance and scale on a running instance: `appearance dark|light`, `scale F`, `resize W H` (clamped to the window's min/max size; reply `ok W H`). `size` replies `ok W H SCALE`.
 
-## Capture set for impeccable's bounded passes
+## Capture set
 
-Write to `.impeccable/review/` (gitignored):
+Write to `target/ui-review/` (inside cargo's target dir, never committed); under impeccable see [impeccable.md](impeccable.md).
 
 | File | Window | Scale | Appearance |
 |---|---|---|---|
@@ -95,38 +95,38 @@ Write to `.impeccable/review/` (gitignored):
 One instance can produce all of them; reach the same app state first, then:
 
 ```sh
-mkdir -p .impeccable/review
+mkdir -p target/ui-review
 iced-remote ctl /tmp/<app>-agent-1.sock - <<'EOF'
 # ... drive to the screen under review ...
 wait-idle
-screenshot .impeccable/review/desktop-standard-dark.png
+screenshot target/ui-review/desktop-standard-dark.png
 appearance light
 wait-idle
-screenshot .impeccable/review/desktop-standard-light.png
+screenshot target/ui-review/desktop-standard-light.png
 appearance dark
 resize 960 600
 wait-idle
-screenshot .impeccable/review/desktop-compact-dark.png
+screenshot target/ui-review/desktop-compact-dark.png
 resize 1920 1080
 wait-idle
-screenshot .impeccable/review/desktop-wide-dark.png
+screenshot target/ui-review/desktop-wide-dark.png
 resize 1280 800
 scale 2
 wait-idle
-screenshot .impeccable/review/desktop-hidpi-dark.png
+screenshot target/ui-review/desktop-hidpi-dark.png
 scale 1
 quit
 EOF
-iced-remote sheet .impeccable/review/sheet.png .impeccable/review/desktop-*.png
+iced-remote sheet target/ui-review/sheet.png target/ui-review/desktop-*.png
 ```
 
 `ctl` makes relative `screenshot` paths absolute against its own cwd, so run the batch from the project root.
 
 1. Look at `sheet.png` first for the overall picture (labels are the file stems).
 2. Then open each file once; do not loop on screenshots.
-3. Pass the path to [iced.md](iced.md), these file names as the required window classes, and "no detector ran; platform is iced desktop" to `impeccable-finish-reviewer`.
+3. Name the capture that produced each finding.
 
-Instances that must differ (for example a state that needs a restart) use `-agent-2.sock` with their own state dir. Variants use [variants.iced.md](variants.iced.md).
+Instances that must differ (for example a state that needs a restart) use `-agent-2.sock` with their own state dir. Variants use [variants.md](variants.md).
 
 ## End
 

@@ -33,11 +33,12 @@ macro_rules! skill_file {
 /// contents.
 pub(crate) const SKILL: &[(&str, &str)] = &[
     skill_file!("SKILL.md"),
-    skill_file!("reference/adapt.iced.md"),
-    skill_file!("reference/audit.iced.md"),
-    skill_file!("reference/design-md.iced.md"),
+    skill_file!("reference/adapt.md"),
+    skill_file!("reference/audit.md"),
     skill_file!("reference/iced.md"),
-    skill_file!("reference/variants.iced.md"),
+    skill_file!("reference/impeccable-design-md.md"),
+    skill_file!("reference/impeccable.md"),
+    skill_file!("reference/variants.md"),
     skill_file!("reference/verify.md"),
 ];
 
