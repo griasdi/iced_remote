@@ -29,9 +29,11 @@ Two things live here:
 | `src/cli.rs`, `src/bin/iced-remote.rs` | standalone binary |
 | `examples/demo.rs` | demo app exercising every protocol path |
 | `examples/multiwin.rs` | daemon with two windows, for window selection |
+| `examples/hero.rs` | task list staged for the README hero |
 | `plugin/skills/iced-design/` | `SKILL.md` and `reference/*.md` |
 | `scripts/smoke.sh` | end-to-end smoke: demo headless, every protocol path checked |
 | `scripts/release-notes.sh` | CHANGELOG section of a version (release notes, checked) |
+| `scripts/hero.sh`, `scripts/hero-compose.py` | regenerate `assets/hero.png` (needs Pillow) |
 | `.github/workflows/ci.yml` | CI: Linux and Windows (clippy, test, smoke on tiny-skia), cargo-deny |
 | `.github/workflows/release.yml` | release: on a `vX.Y.Z` tag, checks, CI, crates.io (Trusted Publishing), GitHub release |
 

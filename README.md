@@ -19,11 +19,12 @@ widget lookups by id or text, waits, screenshots. The app's own tasks and
 subscriptions run unchanged; no window, display server or desktop input is
 involved.
 
-![The demo app, captured headless with screenshot --annotate: every widget the interface reports is outlined and numbered, matching the node lines of tree](https://raw.githubusercontent.com/griasdi/iced_remote/main/assets/demo-annotated.png)
+![A headless iced app with every widget outlined and numbered, next to the terminal batch that drove it: tap, type, key, wait-idle, screenshot --annotate, and the replies, whose node lines carry the same numbers](https://raw.githubusercontent.com/griasdi/iced_remote/main/assets/hero.png)
 
-*The demo app captured with `screenshot --annotate`: the numbers match the
-node lines `tree` prints, so an agent clicks `tap #settings` or
-`tap --nth 2 Save` instead of guessing coordinates.*
+*One `ctl` batch against `examples/hero.rs`: it adds a task, ticks another
+and writes the annotated screenshot on the left. The numbers in the image
+match the node lines in the reply, so an agent acts with `tap #new` or
+`tap Check contrast in light mode` instead of guessing coordinates.*
 
 ## Install
 
