@@ -110,7 +110,7 @@ where
     ) -> Self {
         assert!(
             !protocol::is_builtin(name),
-            "iced_impeccable: custom command \"{name}\" collides with a built-in command"
+            "iced_remote: custom command \"{name}\" collides with a built-in command"
         );
         self.commands.push(Custom {
             name,

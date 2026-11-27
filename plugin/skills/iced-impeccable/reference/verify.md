@@ -1,6 +1,6 @@
 # Headless verification
 
-Every visual check of an iced app runs against a headless instance driven through a control socket by `iced-impeccable ctl`. The full command list is `iced-impeccable help`.
+Every visual check of an iced app runs against a headless instance driven through a control socket by `iced-remote ctl`. The full command list is `iced-remote help`.
 
 ## Rules
 
@@ -29,7 +29,7 @@ No readiness polling and no `sleep`: `ctl` retries the connection for up to 5 s 
 Use batches: one process, one command per line, replies printed in order; the batch stops at the first `err` and names the line on stderr (`--keep-going` runs everything).
 
 ```sh
-iced-impeccable ctl /tmp/<app>-agent-1.sock - <<'EOF'
+iced-remote ctl /tmp/<app>-agent-1.sock - <<'EOF'
 info
 tree
 tap #name
@@ -54,7 +54,7 @@ Lines starting with `#` and blank lines are skipped, so a batch can be commented
 - Mouse: `move`, `down`, `up`, `click X Y [BUTTON] [MODS]`, `dblclick`, `drag X1 Y1 X2 Y2 [STEPS] [MS]`.
 - Clipboard: `clip` reads, `clip-set TEXT` writes.
 - Files: `drop PATH` drags a file onto the window and drops it.
-- Video: `record PATH` starts recording, `record-stop` ends it (`ok PATH N frames Ts`; `err window resized during recording: ...` if the app resized the window). The host runs its own `ffmpeg`; the ban on ffmpeg covers the agent's post-processing. Contact sheets stay in the `iced-impeccable` binary.
+- Video: `record PATH` starts recording, `record-stop` ends it (`ok PATH N frames Ts`; `err window resized during recording: ...` if the app resized the window). The host runs its own `ffmpeg`; the ban on ffmpeg covers the agent's post-processing. Contact sheets stay in the `iced-remote` binary.
 - App-specific commands registered by the app (`Remote::command`) are listed under `custom:` in `help`.
 
 ### Several windows
@@ -96,7 +96,7 @@ One instance can produce all of them; reach the same app state first, then:
 
 ```sh
 mkdir -p .impeccable/review
-iced-impeccable ctl /tmp/<app>-agent-1.sock - <<'EOF'
+iced-remote ctl /tmp/<app>-agent-1.sock - <<'EOF'
 # ... drive to the screen under review ...
 wait-idle
 screenshot .impeccable/review/desktop-standard-dark.png
@@ -117,7 +117,7 @@ screenshot .impeccable/review/desktop-hidpi-dark.png
 scale 1
 quit
 EOF
-iced-impeccable sheet .impeccable/review/sheet.png .impeccable/review/desktop-*.png
+iced-remote sheet .impeccable/review/sheet.png .impeccable/review/desktop-*.png
 ```
 
 `ctl` makes relative `screenshot` paths absolute against its own cwd, so run the batch from the project root.

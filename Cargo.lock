@@ -1271,7 +1271,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "iced_impeccable"
+name = "iced_program"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6dfafec2947cda688d8eb00dac337ba11aa60f9ef6335aed343e189d26e4a673"
+dependencies = [
+ "iced_graphics",
+ "iced_runtime",
+]
+
+[[package]]
+name = "iced_remote"
 version = "0.3.1"
 dependencies = [
  "font8x8",
@@ -1282,16 +1292,6 @@ dependencies = [
  "png",
  "serde_json",
  "tokio",
-]
-
-[[package]]
-name = "iced_program"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6dfafec2947cda688d8eb00dac337ba11aa60f9ef6335aed343e189d26e4a673"
-dependencies = [
- "iced_graphics",
- "iced_runtime",
 ]
 
 [[package]]

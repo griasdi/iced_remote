@@ -1,4 +1,4 @@
-//! The subcommands of the standalone `iced-impeccable` binary, usable from
+//! The subcommands of the standalone `iced-remote` binary, usable from
 //! any other binary as well.
 
 #[cfg(feature = "cli")]
@@ -29,7 +29,7 @@ pub fn help() -> String {
 }
 
 fn sheet_usage() -> &'static str {
-    "usage: iced-impeccable sheet [--cols N] [--labels a,b,c] [--max-width PX] OUT.png IN.png..."
+    "usage: iced-remote sheet [--cols N] [--labels a,b,c] [--max-width PX] OUT.png IN.png..."
 }
 
 /// `sheet [--cols N] [--labels a,b,c] [--max-width PX] OUT.png IN.png...`:
@@ -129,7 +129,7 @@ pub fn sheet(args: &[String]) -> i32 {
 
 #[cfg(feature = "cli")]
 fn install_usage() -> &'static str {
-    "usage: iced-impeccable install [--agent claude,omp] [--yes] [DIR]"
+    "usage: iced-remote install [--agent claude,omp] [--yes] [DIR]"
 }
 
 #[cfg(feature = "cli")]

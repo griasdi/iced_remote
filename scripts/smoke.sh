@@ -11,12 +11,12 @@ set -euo pipefail
 backend=${1:-tiny-skia}
 cd "$(dirname "$0")/.."
 target=${CARGO_TARGET_DIR:-target}
-cargo build -q --locked --example demo --example multiwin --bin iced-impeccable
+cargo build -q --locked --example demo --example multiwin --bin iced-remote
 
 dir=$(mktemp -d)
 if [[ ${OS:-} == Windows_NT ]]; then
-    sock=iced-impeccable-smoke-$$
-    sock2=iced-impeccable-smoke-multiwin-$$
+    sock=iced-remote-smoke-$$
+    sock2=iced-remote-smoke-multiwin-$$
 else
     sock=$dir/demo.sock
     sock2=$dir/multiwin.sock
@@ -28,7 +28,7 @@ host2=
 cur=$host
 trap 'kill "$host" $host2 2>/dev/null || true; rm -rf "$dir"' EXIT
 # Fail fast with the host's log when it does not come up (a missing renderer, a bad socket).
-"$target/debug/iced-impeccable" ctl --wait 15000 "$sock" info >/dev/null \
+"$target/debug/iced-remote" ctl --wait 15000 "$sock" info >/dev/null \
     || { echo "FAIL  host did not start"; cat "$dir/host.log"; exit 1; }
 
 failures=0
@@ -37,7 +37,7 @@ expect() {
     local pattern=$1
     shift
     local reply
-    reply=$("$target/debug/iced-impeccable" ctl "$sock" "$@" || true)
+    reply=$("$target/debug/iced-remote" ctl "$sock" "$@" || true)
     if grep -qE -- "$pattern" <<<"${reply%%$'\n'*}"; then
         echo "ok    $*"
     else
@@ -76,7 +76,7 @@ if [[ ${OS:-} != Windows_NT ]]; then
 fi
 expect "^ok from start$" clip
 expect "^ok [0-9]+$" tree
-[[ $("$target/debug/iced-impeccable" ctl "$sock" tree) == *'hidden text="Row 60"'* ]] \
+[[ $("$target/debug/iced-remote" ctl "$sock" tree) == *'hidden text="Row 60"'* ]] \
     || { echo "FAIL  tree lists Row 60 as hidden"; failures=$((failures + 1)); }
 expect "^err ambiguous: 2 matches \(use --nth\)" find Save
 expect "^ok [0-9]+ [0-9]+$" tap '#name'
@@ -142,14 +142,14 @@ expect "^ok$" quit
 wait "$host" || { echo "FAIL  host exit status $?"; failures=$((failures + 1)); }
 grep -q 'demo: state dropped' "$dir/host.log" \
     || { echo "FAIL  host dropped the app state at exit"; failures=$((failures + 1)); }
-sheet=$("$target/debug/iced-impeccable" sheet "$dir/sheet.png" "$dir/light.png" "$dir/hidpi.png" || true)
+sheet=$("$target/debug/iced-remote" sheet "$dir/sheet.png" "$dir/light.png" "$dir/hidpi.png" || true)
 [[ $sheet =~ ^ok\ .*/sheet.png\ 2560x874$ ]] && echo "ok    sheet" \
     || { echo "FAIL  sheet: $sheet"; failures=$((failures + 1)); }
 
 # Skill install into a repo, with an empty PATH so no agent CLI (and no
 # installed plugin of the developer) is touched.
 mkdir -p "$dir/repo/.git"
-skill_install() { PATH= "$target/debug/iced-impeccable" install --agent claude,omp "$@" 2>&1 || true; }
+skill_install() { PATH= "$target/debug/iced-remote" install --agent claude,omp "$@" 2>&1 || true; }
 out=$(skill_install "$dir/repo")
 [[ $out == *'ok claude .claude/skills/iced-impeccable installed '* \
     && $out == *'ok omp .omp/skills/iced-impeccable installed '* ]] && echo "ok    install" \
@@ -158,7 +158,7 @@ out=$(skill_install "$dir/repo")
 [[ $out == *'ok claude .claude/skills/iced-impeccable up to date '* \
     && $out == *'ok omp .omp/skills/iced-impeccable up to date '* ]] && echo "ok    install again" \
     || { echo "FAIL  install again: $out"; failures=$((failures + 1)); }
-if out=$(PATH= "$target/debug/iced-impeccable" install --agent claude "$dir" 2>&1); then
+if out=$(PATH= "$target/debug/iced-remote" install --agent claude "$dir" 2>&1); then
     echo "FAIL  install outside a repo succeeded: $out"; failures=$((failures + 1))
 elif [[ $out == 'err '*' is not inside a git repository' ]]; then
     echo "ok    install outside a repo"
@@ -192,7 +192,7 @@ STUB
         chmod +x "$dir/bin/$cli"
     done
     stub_install() {
-        STUB_DIR=$dir PATH="$dir/bin:/usr/bin:/bin" "$target/debug/iced-impeccable" install "$@" \
+        STUB_DIR=$dir PATH="$dir/bin:/usr/bin:/bin" "$target/debug/iced-remote" install "$@" \
             </dev/null 2>&1 && code=0 || code=$?
     }
     out=$(stub_install --yes "$dir/repo2"; echo "exit $code")

@@ -16,7 +16,7 @@ fail() {
 
 grep -qE "^## \[${version//./\\.}\] - [0-9]{4}-[0-9]{2}-[0-9]{2}\$" CHANGELOG.md \
     || fail "CHANGELOG.md has no '## [$version] - YYYY-MM-DD' heading"
-grep -qxF "[$version]: https://github.com/griasdi/iced_impeccable/releases/tag/v$version" CHANGELOG.md \
+grep -qxF "[$version]: https://github.com/griasdi/iced_remote/releases/tag/v$version" CHANGELOG.md \
     || fail "CHANGELOG.md has no '[$version]: …/releases/tag/v$version' link"
 
 notes=$(awk -v head="## [$version] - " '

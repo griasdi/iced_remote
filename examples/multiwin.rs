@@ -8,7 +8,7 @@ fn main() -> iced::Result {
     let app = iced::daemon(boot, update, view)
         .title(title)
         .subscription(subscription);
-    iced_impeccable::Remote::new(app).run()
+    iced_remote::Remote::new(app).run()
 }
 
 #[derive(Default)]

@@ -20,7 +20,7 @@ Impeccable's bounded-pass rule holds unchanged: build fully, inspect once with a
 1. Run impeccable's `context` launcher exactly as its Setup says (`"<impeccable skill dir>/scripts/impeccable" context`, once per session, cwd at the user's project).
 2. PRODUCT.md `## Platform` is `desktop` and `## Stack` records `iced 0.14 (Rust)`. Impeccable (checked against 4.9.1) recognises only `web`, `ios`, `android` and `adaptive`, so the launcher treats `desktop` as unrecognized (web), prints a `WARNING` asking to fix the field, and resolves `"platform": null`. Expected: do not "fix" the field and do not surface it to the user. Handle the launcher's directives like this:
    - `MANUAL_DETECTOR_REQUIRED`: web-only; ignore it. Never run `impeccable detect` on an iced app.
-   - `IMAGE_TOOLS`: ignore it for screenshots; crops, zooms and comparisons go through `screenshot --crop X Y W H --zoom N` and `iced-impeccable sheet` ([reference/verify.md](reference/verify.md)), never `magick` or `ffmpeg`.
+   - `IMAGE_TOOLS`: ignore it for screenshots; crops, zooms and comparisons go through `screenshot --crop X Y W H --zoom N` and `iced-remote sheet` ([reference/verify.md](reference/verify.md)), never `magick` or `ffmpeg`.
    - `WORLD_DISCOVERY_REQUIRED`: the launcher does not recognise Rust views as a visual implementation (`"hasVisualImplementation": false`). An app with existing iced views has an incumbent implementation; the directive applies only to a new build or an explicit redesign, as it says.
    - `AUTONOMY_DIRECTIVE_CHECK`, `SUBAGENT_AUTHORIZATION` and any other platform-neutral directive (`CONTEXT_STALE`, `UPDATE_AVAILABLE`, `IMAGE_GEN_AVAILABLE`): follow as impeccable says.
 3. Read [reference/iced.md](reference/iced.md).
@@ -58,27 +58,27 @@ With `"platform": null` none of impeccable's native branches fire by themselves.
 
 ## Verification
 
-Every visual check goes through [reference/verify.md](reference/verify.md): a headless instance of the app, driven through its control socket, screenshotted with `iced-impeccable ctl`. Never the user's desktop, never a browser, never external image tools.
+Every visual check goes through [reference/verify.md](reference/verify.md): a headless instance of the app, driven through its control socket, screenshotted with `iced-remote ctl`. Never the user's desktop, never a browser, never external image tools.
 
 `verify` as the argument runs that flow on the current app and reports what it saw.
 
 ## Integrate
 
-Run when the user passes `integrate`, and whenever the target app does not yet support `--headless --control`. Check by searching the whole workspace, member crates included, for `iced_impeccable` in every `Cargo.toml` and in source (`Remote::new`); then read README and AGENTS/CLAUDE.md for a documented headless script and use it. To put this skill into the repository, run `iced-impeccable install [--agent claude,omp]` (add `--yes` to skip prompts); it copies the skill into the repo's agent skill dirs after removing a marketplace install of the plugin.
+Run when the user passes `integrate`, and whenever the target app does not yet support `--headless --control`. Check by searching the whole workspace, member crates included, for `iced_remote` in every `Cargo.toml` and in source (`Remote::new`); then read README and AGENTS/CLAUDE.md for a documented headless script and use it. To put this skill into the repository, run `iced-remote install [--agent claude,omp]` (add `--yes` to skip prompts); it copies the skill into the repo's agent skill dirs after removing a marketplace install of the plugin.
 
 1. `Cargo.toml` of the app:
    ```toml
    [dependencies]
-   iced_impeccable = { version = "0.3", optional = true, default-features = false, features = ["wgpu", "tiny-skia"] }
+   iced_remote = { version = "0.4", optional = true, default-features = false, features = ["wgpu", "tiny-skia"] }
 
    [features]
-   remote = ["dep:iced_impeccable"]
+   remote = ["dep:iced_remote"]
    ```
-   When a local checkout of iced_impeccable exists next to the app's repository, a `path` dependency on it works the same and picks up unreleased changes. The `iced-impeccable` binary comes from `cargo install iced_impeccable --bin iced-impeccable --locked`.
+   When a local checkout of iced_remote exists next to the app's repository, a `path` dependency on it works the same and picks up unreleased changes. The `iced-remote` binary comes from `cargo install iced_remote --bin iced-remote --locked`.
 2. Wrap `main`: build the `iced::application(...)` or `iced::daemon(...)` value, then
    ```rust
    #[cfg(feature = "remote")]
-   return iced_impeccable::Remote::new(app)
+   return iced_remote::Remote::new(app)
        .heartbeat(|m| matches!(m, Message::Tick(_) | Message::Frame(_)))
        .run();
    #[cfg(not(feature = "remote"))]
@@ -86,7 +86,7 @@ Run when the user passes `integrate`, and whenever the target app does not yet s
    ```
 3. Mark periodic subscription messages (`iced::time::every`, `iced::window::frames`) as heartbeats in the closure above, so `wait-idle` is not kept busy by them.
 4. Give icon-only interactive widgets an id: `container(button(icon).on_press(..)).id("settings")`, then address them with `tap #settings`. Pick-list entries and other widgets that report no text are reached the same way or via `tree`.
-5. App code that parses argv uses `iced_impeccable::app_args()` (argv without the host flags). App code that must not open OS dialogs (file pickers, message boxes) checks `iced_impeccable::is_headless()` and falls back. Tray icons and other desktop integration go into `.windowed(..)`; headless-only setup into `.headless(..)`.
+5. App code that parses argv uses `iced_remote::app_args()` (argv without the host flags). App code that must not open OS dialogs (file pickers, message boxes) checks `iced_remote::is_headless()` and falls back. Tray icons and other desktop integration go into `.windowed(..)`; headless-only setup into `.headless(..)`.
 6. App-specific actions the agent needs (reset state, restart, seed data) are registered with `.command("name", "summary", |args| Ok(Message::...))`.
 7. Release builds never enable `remote`.
 

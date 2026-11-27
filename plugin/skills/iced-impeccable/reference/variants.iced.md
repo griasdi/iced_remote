@@ -24,19 +24,19 @@ Use for `live` and `generate [n] [action] [element]`. Verification mechanics are
 5. **Drive each to the same state** with an identical batch (only the socket differs), then capture:
    ```sh
    for v in a b c; do
-   iced-impeccable ctl --keep-going /tmp/<app>-agent-$v.sock - <<EOF
+   iced-remote ctl --keep-going /tmp/<app>-agent-$v.sock - <<EOF
    # ... same steps for every variant ...
    wait-idle
    screenshot /tmp/<app>-variants/$v.png
    quit
    EOF
    done
-   for v in a b c; do iced-impeccable ctl --wait 300 /tmp/<app>-agent-$v.sock quit >/dev/null 2>&1; done
+   for v in a b c; do iced-remote ctl --wait 300 /tmp/<app>-agent-$v.sock quit >/dev/null 2>&1; done
    ```
    The heredoc is unquoted so `$v` expands per variant; keep other `$` out of the batch lines. The second loop ends any instance the batch did not reach (a failed round). Any `err` in a variant's replies means rerun that variant.
 6. **Contact sheet**:
    ```sh
-   iced-impeccable sheet --labels a,b,c /tmp/<app>-variants/sheet.png /tmp/<app>-variants/a.png /tmp/<app>-variants/b.png /tmp/<app>-variants/c.png
+   iced-remote sheet --labels a,b,c /tmp/<app>-variants/sheet.png /tmp/<app>-variants/a.png /tmp/<app>-variants/b.png /tmp/<app>-variants/c.png
    ```
    Use `--crop X Y W H --zoom N` on `screenshot` when the varied element is small, so the sheet shows it large. Add a light-appearance row if the variants differ by colour logic.
 7. **Show the sheet to the user and ask which variant to keep** (impeccable's question tool). Say in one line what each variant explores. One round only; if none fits, ask what to change and run one more round, no more.

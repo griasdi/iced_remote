@@ -1,4 +1,4 @@
-//! `iced-impeccable install`: the skill, embedded in the binary, copied into
+//! `iced-remote install`: the skill, embedded in the binary, copied into
 //! a git repository for Claude Code and omp, and a marketplace or linked
 //! install of the plugin detected and removed through the agents' own CLIs.
 
@@ -365,10 +365,8 @@ mod tests {
     use super::*;
 
     fn temp_dir(name: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!(
-            "iced-impeccable-install-{}-{name}",
-            std::process::id()
-        ));
+        let dir =
+            std::env::temp_dir().join(format!("iced-remote-install-{}-{name}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         dir

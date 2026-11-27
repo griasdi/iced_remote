@@ -43,7 +43,7 @@ Replace the hamburger menu and bottom tab bar with a sidebar or top toolbar, hov
 ## Implement & Verify
 
 - Set `min_size` to the compact class; keep every control reachable there.
-- Verify with the capture set in [verify.md](verify.md): standard dark and light, compact, wide, and hidpi (scale 2). Reach the same app state in each, `wait-idle`, `screenshot`, then `iced-impeccable sheet` to compare at a glance. Fix everything the round shows in one batch, confirm once.
+- Verify with the capture set in [verify.md](verify.md): standard dark and light, compact, wide, and hidpi (scale 2). Reach the same app state in each, `wait-idle`, `screenshot`, then `iced-remote sheet` to compare at a glance. Fix everything the round shows in one batch, confirm once.
 - Keyboard and pointer behaviour are checked on the headless instance (`key tab`, `focused`, `tap`); real-OS behaviour (native dialogs, IME, window-manager integration) needs a human on that OS. Say which one produced the evidence.
 
 **NEVER** (adding to adapt.native.md's Avoid list):

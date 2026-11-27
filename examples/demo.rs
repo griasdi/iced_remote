@@ -19,7 +19,7 @@ fn main() -> iced::Result {
     let app = iced::application(Demo::new, Demo::update, Demo::view)
         .subscription(Demo::subscription)
         .window_size((1100.0, 720.0));
-    iced_impeccable::Remote::new(app)
+    iced_remote::Remote::new(app)
         .heartbeat(|m| matches!(m, Message::Tick | Message::Frame(_)))
         .command("reset", "clear the form", |_| Ok(Message::Reset))
         .run()
@@ -170,7 +170,7 @@ impl Demo {
             container(button(Space::new().width(16).height(16)).on_press(Message::ToggleSettings))
                 .id("settings");
         let header = row![
-            text("Impeccable demo").size(24),
+            text("iced_remote demo").size(24),
             Space::new().width(Length::Fill),
             text(&self.clock),
             settings,

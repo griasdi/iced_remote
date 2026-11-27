@@ -10,7 +10,7 @@
 //! # fn view(_: &u32) -> iced::Element<'_, Message> { iced::widget::text("hi").into() }
 //! fn main() -> iced::Result {
 //!     let app = iced::application(|| 0u32, update, view);
-//!     iced_impeccable::Remote::new(app).run()
+//!     iced_remote::Remote::new(app).run()
 //! }
 //! ```
 //!
@@ -32,7 +32,7 @@
 //! `--window N`, and `windows` lists them.
 //!
 //! `<bin> ctl <socket> help` lists the protocol. The standalone
-//! `iced-impeccable` binary offers the same client plus contact sheets.
+//! `iced-remote` binary offers the same client plus contact sheets.
 
 #![forbid(unsafe_code)]
 

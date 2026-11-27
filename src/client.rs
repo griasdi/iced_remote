@@ -18,7 +18,7 @@ fn usage() -> String {
         .next()
         .map(PathBuf::from)
         .and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned()))
-        .unwrap_or_else(|| "iced-impeccable".to_owned());
+        .unwrap_or_else(|| "iced-remote".to_owned());
     format!(
         "usage: {bin} ctl [--wait MS] [--keep-going] [--window N] <socket> <command> [args...] | -"
     )
